@@ -7,8 +7,10 @@ const startServer = () => {
     try {
         app.listen(PORT, () => {
             console.info("Server started", {
-                PORT: PORT,
-                SERVER_URL: Config.SERVER_URL
+                meta: {
+                    PORT: PORT,
+                    SERVER_URL: Config.SERVER_URL
+                }
             });
         });
     } catch (error) {
