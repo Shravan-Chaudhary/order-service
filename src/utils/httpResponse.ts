@@ -22,7 +22,7 @@ const httpResponse = (
         data: data
     };
 
-    // Log
+    //TODO: Log response
     console.info("Controller_response", {
         meta: response
     });
