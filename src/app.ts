@@ -1,17 +1,24 @@
-import express, { Request, Response, Application, NextFunction } from "express";
-import path from "path";
-import { globalErrorHandler } from "./middlewares/globalErrorHandler";
-import httpResponse from "./utils/httpResponse";
-import HttpStatus from "./utils/httpCodes";
-import ResponseMessage from "./constants/responseMessage";
-import CreateHttpError from "./utils/httpErrors";
-import { getApplicationHealth, getSystemHealth } from "./utils/quicker";
+import cors from "cors";
+import express, { Application, NextFunction, Request, Response } from "express";
 import helmet from "helmet";
+import path from "path";
+import ResponseMessage from "./constants/responseMessage";
+import { globalErrorHandler } from "./middlewares/globalErrorHandler";
+import HttpStatus from "./utils/httpCodes";
+import CreateHttpError from "./utils/httpErrors";
+import httpResponse from "./utils/httpResponse";
+import { getApplicationHealth, getSystemHealth } from "./utils/quicker";
 
 const app: Application = express();
 
 // Middlewares
 app.use(helmet());
+app.use(
+    cors({
+        origin: ["http://localhost:3000", "http://localhost:3001"],
+        credentials: true
+    })
+);
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../public")));
 
