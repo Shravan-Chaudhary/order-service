@@ -1,5 +1,5 @@
 import createHttpError from "http-errors";
-import HttpStatus from "./httpCodes";
+import HttpStatus from "./httpStatusCodes";
 import ResponseMessage from "../constants/responseMessage";
 
 const CreateHttpError = {

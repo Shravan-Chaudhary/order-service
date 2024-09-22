@@ -22,4 +22,4 @@ const startServer = () => {
     }
 };
 
-void startServer();
+startServer();
