@@ -2,10 +2,10 @@ import cors from "cors";
 import express, { Application, NextFunction, Request, Response } from "express";
 import helmet from "helmet";
 import path from "path";
-import ResponseMessage from "./constants/responseMessage";
-import { globalErrorHandler } from "./middlewares/globalErrorHandler";
-import { httpResponse, CreateHttpError, HttpStatus } from "./common";
-import { getApplicationHealth, getSystemHealth } from "./utils/quicker";
+import ResponseMessage from "./common/constants/responseMessage";
+import { globalErrorHandler } from "./common/middlewares/globalErrorHandler";
+import { httpResponse, CreateHttpError, HttpStatus } from "./common/http";
+import { getApplicationHealth, getSystemHealth } from "./common/utils/quicker";
 
 const app: Application = express();
 

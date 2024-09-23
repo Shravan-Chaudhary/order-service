@@ -3,7 +3,7 @@ import winston from "winston";
 const logger = winston.createLogger({
     level: "info",
     defaultMeta: {
-        serviceName: "auth-service"
+        serviceName: "service-name"
     },
     format: winston.format.combine(
         winston.format.timestamp(),

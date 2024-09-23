@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { THttpResponse } from "../types";
-import Config from "../config";
+import { THttpResponse } from "./httpTypes";
+import Config from "../../config";
 import { EApplicationEnvoirnment } from "../constants/application";
 
 const httpResponse = (
