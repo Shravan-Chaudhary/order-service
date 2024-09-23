@@ -3,6 +3,7 @@ import { HttpError } from "http-errors";
 import { THttpError } from "../http/httpTypes";
 import Config from "../../config";
 import { EApplicationEnvoirnment } from "../constants/application";
+import logger from "../../config/logger";
 
 const createErrorObject = (err: HttpError, req: Request): THttpError => {
     const errorObject: THttpError = {
@@ -19,7 +20,7 @@ const createErrorObject = (err: HttpError, req: Request): THttpError => {
     };
 
     // TODO: Log error
-    console.error("Controller_error", {
+    logger.error("Controller_error", {
         meta: errorObject
     });
 

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { THttpResponse } from "./httpTypes";
 import Config from "../../config";
 import { EApplicationEnvoirnment } from "../constants/application";
+import logger from "../../config/logger";
 
 const httpResponse = (
     req: Request,
@@ -23,7 +24,7 @@ const httpResponse = (
     };
 
     //TODO: Log response
-    console.info("Controller_response", {
+    logger.info("Controller_response", {
         meta: response
     });
 
