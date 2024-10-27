@@ -142,3 +142,4 @@ dist
 .pnp.*
 
 logs
+commands.txt
