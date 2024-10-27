@@ -6,6 +6,8 @@ import ResponseMessage from "./common/constants/responseMessage";
 import { globalErrorHandler } from "./common/middlewares/globalErrorHandler";
 import { httpResponse, CreateHttpError, HttpStatus } from "./common/http";
 import { getApplicationHealth, getSystemHealth } from "./common/utils/quicker";
+import Config from "./config";
+import customerRouter from "./modules/customer/customerRoutes";
 
 const app: Application = express();
 
@@ -26,6 +28,8 @@ app.get("/", (req: Request, res: Response) => {
         user_id: 2
     });
 });
+
+app.use(`${Config.BASE_URL}/customer`, customerRouter);
 
 // Health check
 app.get("/api/v1/health", (req: Request, res: Response) => {
@@ -52,4 +56,3 @@ app.use((_req: Request, _res: Response, next: NextFunction) => {
 app.use(globalErrorHandler);
 
 export default app;
-
