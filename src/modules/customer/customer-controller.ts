@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import ResponseMessage from "../../common/constants/responseMessage";
 import { httpResponse, HttpStatus } from "../../common/http";
-import { CustomerService } from "./customerService";
+import { CustomerService } from "./customer-service";
 
 export class CustomerController {
     constructor(_customerService: CustomerService) {}

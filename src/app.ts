@@ -7,7 +7,7 @@ import { globalErrorHandler } from "./common/middlewares/globalErrorHandler";
 import { httpResponse, CreateHttpError, HttpStatus } from "./common/http";
 import { getApplicationHealth, getSystemHealth } from "./common/utils/quicker";
 import Config from "./config";
-import customerRouter from "./modules/customer/customerRoutes";
+import customerRouter from "./modules/customer/customer-routes";
 
 const app: Application = express();
 
