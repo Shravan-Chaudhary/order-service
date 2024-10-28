@@ -12,3 +12,10 @@ export interface Customer {
     createdAt: Date;
     updatedAt: Date;
 }
+
+export interface CreateCustomerData {
+    userId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+}
