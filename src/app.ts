@@ -7,6 +7,7 @@ import { globalErrorHandler } from "./common/middlewares/globalErrorHandler";
 import { httpResponse, CreateHttpError, HttpStatus } from "./common/http";
 import { getApplicationHealth, getSystemHealth } from "./common/utils/quicker";
 import Config from "./config";
+import cookieParser from "cookie-parser";
 import customerRouter from "./modules/customer/customer-routes";
 
 const app: Application = express();
@@ -20,6 +21,7 @@ app.use(
     })
 );
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "../public")));
 
 // Routes
