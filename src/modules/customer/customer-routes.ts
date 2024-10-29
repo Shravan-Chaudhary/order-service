@@ -10,11 +10,20 @@ const router = express();
 const customerService = new CustomerService();
 const customerController = new CustomerController(customerService);
 
+//TODO: Only customers can access this route (add canAccess middleware)
 router.get(
     "/",
     authenticate,
     asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
         await customerController.findOne(req, res, next);
+    })
+);
+
+router.patch(
+    "/addresses/:id",
+    authenticate,
+    asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        await customerController.addAddress(req, res, next);
     })
 );
 

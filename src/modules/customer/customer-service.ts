@@ -30,4 +30,22 @@ export class CustomerService {
         }
         return customer;
     }
+
+    public async addAddress(address: string, userId: string, _id: string) {
+        const customer = await CustomerModel.findOneAndUpdate(
+            {
+                _id,
+                userId
+            },
+            {
+                $push: {
+                    addresses: {
+                        text: address,
+                        isDefault: false
+                    }
+                }
+            }
+        );
+        return customer;
+    }
 }

@@ -1,3 +1,5 @@
+import { Request } from "express";
+
 export interface Address {
     text: string;
     isDefault: boolean;
@@ -18,4 +20,10 @@ export interface CreateCustomerData {
     firstName: string;
     lastName: string;
     email: string;
+}
+
+export interface AddAddressRequest extends Request {
+    body: {
+        address: string;
+    };
 }

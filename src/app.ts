@@ -31,7 +31,7 @@ app.get("/", (req: Request, res: Response) => {
     });
 });
 
-app.use(`${Config.BASE_URL}/customer`, customerRouter);
+app.use(`${Config.BASE_URL}/customers`, customerRouter);
 
 // Health check
 app.get("/api/v1/health", (req: Request, res: Response) => {
