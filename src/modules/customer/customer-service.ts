@@ -44,6 +44,9 @@ export class CustomerService {
                         isDefault: false
                     }
                 }
+            },
+            {
+                new: true
             }
         );
         return customer;
