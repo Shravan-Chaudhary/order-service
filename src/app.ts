@@ -9,6 +9,7 @@ import { getApplicationHealth, getSystemHealth } from "./common/utils/quicker";
 import Config from "./config";
 import cookieParser from "cookie-parser";
 import customerRouter from "./modules/customer/customer-routes";
+import couponRouter from "./modules/coupon/coupon-routes";
 
 const app: Application = express();
 
@@ -32,6 +33,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use(`${Config.BASE_URL}/customers`, customerRouter);
+app.use(`${Config.BASE_URL}/coupons`, couponRouter);
 
 // Health check
 app.get("/api/v1/health", (req: Request, res: Response) => {
