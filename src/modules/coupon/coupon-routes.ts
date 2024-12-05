@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
-import authenticate from "../../common/middlewares/authenticate";
+// import authenticate from "../../common/middlewares/authenticate";
 import asyncHandler from "../../common/utils/asyncHandler";
 import { CouponController } from "./coupon-controller";
 
@@ -16,9 +16,17 @@ const couponController = new CouponController();
 
 router.post(
     "/",
-    authenticate,
+    // authenticate,
     asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
         await couponController.create(req, res, next);
+    })
+);
+
+router.post(
+    "/verify",
+    // authenticate,
+    asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        await couponController.verify(req, res, next);
     })
 );
 

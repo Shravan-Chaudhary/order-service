@@ -17,3 +17,10 @@ export interface CreateCouponRequest extends Request {
         tenantId: number;
     };
 }
+
+export interface VerifyCouponRequest extends Request {
+    body: {
+        code: string;
+        tenantId: number;
+    };
+}
