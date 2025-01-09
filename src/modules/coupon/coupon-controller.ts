@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { CreateCouponRequest, VerifyCouponRequest } from "./types";
-import { CreateHttpError, httpResponse, HttpStatus } from "../../common/http";
+import { httpResponse, HttpStatus } from "../../common/http";
 import ResponseMessage from "../../common/constants/responseMessage";
 import CouponModel from "./coupon-model";
 
@@ -27,7 +27,7 @@ export class CouponController {
         );
     }
 
-    public async verify(req: Request, res: Response, next: NextFunction) {
+    public async verify(req: Request, res: Response, _next: NextFunction) {
         const { code, tenantId } = (req as VerifyCouponRequest).body;
 
         const coupon = await CouponModel.findOne({
@@ -36,8 +36,10 @@ export class CouponController {
         });
 
         if (!coupon) {
-            next(CreateHttpError.NotFoundError("Coupon not found"));
-            return;
+            return httpResponse(req, res, HttpStatus.OK, "Invalid coupon", {
+                valid: false,
+                discount: 0
+            });
         }
 
         const currentDate = new Date();
@@ -55,7 +57,7 @@ export class CouponController {
                 }
             );
         }
-        return httpResponse(req, res, HttpStatus.OK, ResponseMessage.SUCCESS, {
+        return httpResponse(req, res, HttpStatus.OK, "Coupon expired", {
             valid: false,
             discount: 0
         });
