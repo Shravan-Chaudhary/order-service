@@ -12,12 +12,16 @@ import customerRouter from "./modules/customer/customer-routes";
 import couponRouter from "./modules/coupon/coupon-routes";
 
 const app: Application = express();
+const ALLOWED_DOMAINS = [
+    Config.CORS_CLIENT_URL as string,
+    Config.CORS_ADMIN_URL as string
+];
 
 // Middlewares
 app.use(helmet());
 app.use(
     cors({
-        origin: ["http://localhost:3000", "http://localhost:3001"],
+        origin: ALLOWED_DOMAINS,
         credentials: true
     })
 );
