@@ -1,10 +1,13 @@
 import app from "./app";
+import { createMessageBroker } from "./common/factories/brokerFactory";
 import Config from "./config";
 import initDb from "./config/db";
 import logger from "./config/logger";
+import { MessageBroker } from "./types/broker";
 
 const startServer = async () => {
     const PORT = Config.PORT ?? 5501;
+    let broker: MessageBroker | null = null;
 
     try {
         // Initialize database
@@ -14,6 +17,9 @@ const startServer = async () => {
                 CONNECTION_NAME: connection.name
             }
         });
+        broker = createMessageBroker();
+        await broker.connectConsumer();
+        await broker.consumeMessage(["product"], true);
 
         // Start Application
         app.listen(PORT, () => {
@@ -26,6 +32,9 @@ const startServer = async () => {
         });
     } catch (error) {
         if (error instanceof Error) {
+            if (broker) {
+                await broker.disconnectConsumer();
+            }
             logger.error(error);
             process.exit(1);
         }
