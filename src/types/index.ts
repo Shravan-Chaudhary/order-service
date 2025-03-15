@@ -12,3 +12,19 @@ export interface AuthRequest extends Request {
         email: string;
     };
 }
+
+export interface PriceConfiguration {
+    priceType: "base" | "additional";
+    availableOptions: {
+        [key: string]: number;
+    };
+}
+export interface ProductPricingCache {
+    productId: string;
+    priceConfiguration: PriceConfiguration;
+}
+
+export interface ProductMessage {
+    id: string;
+    priceConfiguration: PriceConfiguration;
+}
