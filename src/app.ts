@@ -10,6 +10,7 @@ import Config from "./config";
 import cookieParser from "cookie-parser";
 import customerRouter from "./modules/customer/customer-routes";
 import couponRouter from "./modules/coupon/coupon-routes";
+import orderRouter from "./modules/order/orderRouter";
 
 const app: Application = express();
 const ALLOWED_DOMAINS = [
@@ -38,6 +39,7 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use(`${Config.BASE_URL}/customers`, customerRouter);
 app.use(`${Config.BASE_URL}/coupons`, couponRouter);
+app.use(`${Config.BASE_URL}/orders`, orderRouter);
 
 // Health check
 app.get("/api/v1/health", (req: Request, res: Response) => {
