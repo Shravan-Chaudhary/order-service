@@ -15,11 +15,10 @@ export interface AuthRequest extends Request {
         email: string;
     };
 }
-// export interface OrderRequest extends Request {
-//     body: {
-//         cart: CartItem[];
-//     };
-// }
+export interface OrderRequest extends Request {
+    tenantId: string;
+    couponCode?: string;
+}
 export enum ToppingEvents {
     TOPPING_CREATE = "TOPPING_CREATE",
     TOPPING_UPDATE = "TOPPING_UPDATE",

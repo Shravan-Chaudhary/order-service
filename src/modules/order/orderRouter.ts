@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import authenticate from "../../common/middlewares/authenticate";
 import asyncHandler from "../../common/utils/asyncHandler";
 import { OrderController } from "./orderController";
@@ -9,8 +9,8 @@ const orderController = new OrderController();
 router.post(
     "/",
     authenticate,
-    asyncHandler(async (req, res, next) => {
-        await orderController.create(req, res, next);
+    asyncHandler(async (req: Request, res: Response) => {
+        await orderController.create(req, res);
     })
 );
 
