@@ -32,8 +32,12 @@ export class OrderController {
         );
 
         const priceAfterDiscount = totalPrice - discountAmount;
+        const TAXES_PERCENTAGE = 18;
+        const taxes = Math.round((priceAfterDiscount * TAXES_PERCENTAGE) / 100);
+        const DELIVERY_CHARGES = 60;
+        const finalPrice = priceAfterDiscount + taxes + DELIVERY_CHARGES;
         httpResponse(req, res, HttpStatus.OK, ResponseMessage.SUCCESS, {
-            totalPrice: priceAfterDiscount
+            totalPrice: finalPrice
         });
     };
 
