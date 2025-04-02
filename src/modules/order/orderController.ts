@@ -13,6 +13,8 @@ import { CreateHttpError, httpResponse, HttpStatus } from "../../common/http";
 import ResponseMessage from "../../common/constants/responseMessage";
 import orderModel from "./orderModel";
 import { OrderStatus, PaymentStatus } from "../../constants";
+import idempotencyModel from "../idempotency/idempotencyModel";
+import mongoose from "mongoose";
 
 export class OrderController {
     create = async (req: Request, res: Response, next: NextFunction) => {
@@ -47,20 +49,55 @@ export class OrderController {
 
         // Create order
         try {
-            const newOrder = await orderModel.create({
-                cart,
-                address,
-                comment,
-                customerId,
-                deliveryCharges: DELIVERY_CHARGES,
-                discount: discountAmount,
-                paymentMode,
-                orderStatus: OrderStatus.RECEIVED,
-                paymentStatus: PaymentStatus.PENDING,
-                taxes,
-                tenantId,
-                total: finalPrice
+            const idempotencyKey = req.headers["idempotency-key"];
+            const idempotency = await idempotencyModel.findOne({
+                key: idempotencyKey
             });
+            let newOrder = idempotency ? [idempotency.response] : [];
+            if (!idempotency) {
+                const session = await mongoose.startSession();
+                session.startTransaction();
+
+                try {
+                    newOrder = await orderModel.create(
+                        [
+                            {
+                                cart,
+                                address,
+                                comment,
+                                customerId,
+                                deliveryCharges: DELIVERY_CHARGES,
+                                discount: discountAmount,
+                                paymentMode,
+                                orderStatus: OrderStatus.RECEIVED,
+                                paymentStatus: PaymentStatus.PENDING,
+                                taxes,
+                                tenantId,
+                                total: finalPrice
+                            }
+                        ],
+                        { session }
+                    );
+
+                    await idempotencyModel.create(
+                        [{ key: idempotencyKey, response: newOrder[0] }],
+                        { session }
+                    );
+
+                    await session.commitTransaction();
+                } catch (error) {
+                    if (error instanceof Error) {
+                        await session.abortTransaction();
+                        await session.endSession();
+                        return next(
+                            CreateHttpError.DatabaseError(error.message)
+                        );
+                    }
+                } finally {
+                    await session.endSession();
+                }
+            }
+            // payment processing
 
             httpResponse(req, res, HttpStatus.OK, ResponseMessage.SUCCESS, {
                 order: newOrder
