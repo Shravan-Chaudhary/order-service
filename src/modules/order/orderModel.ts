@@ -4,8 +4,8 @@ import { CartItem } from "../../types";
 import { OrderStatus, PaymentMode, PaymentStatus } from "../../constants";
 
 const toppingSchema = new mongoose.Schema({
-    id: {
-        type: Schema.Types.ObjectId,
+    _id: {
+        type: String,
         required: true
     },
     image: {

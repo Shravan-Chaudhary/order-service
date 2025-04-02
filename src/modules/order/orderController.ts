@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import {
     CartItem,
     OrderRequest,
@@ -9,17 +9,25 @@ import {
 import productCacheModel from "../productCache/productCacheModel";
 import toppingCacheModel from "../toppingCache/toppingCacheModel";
 import CouponModel from "../coupon/coupon-model";
-import { httpResponse, HttpStatus } from "../../common/http";
+import { CreateHttpError, httpResponse, HttpStatus } from "../../common/http";
 import ResponseMessage from "../../common/constants/responseMessage";
+import orderModel from "./orderModel";
+import { OrderStatus, PaymentStatus } from "../../constants";
 
 export class OrderController {
-    create = async (req: Request, res: Response) => {
+    create = async (req: Request, res: Response, next: NextFunction) => {
         const { cart } = req.body as unknown as { cart: CartItem[] };
+        const {
+            couponCode,
+            tenantId,
+            paymentMode,
+            address,
+            customerId,
+            comment
+        } = req.body as OrderRequest;
 
         const totalPrice = await this.calculateTotal(cart);
         let discountPercentage: number = 0;
-        const couponCode = (req.body as OrderRequest).couponCode;
-        const tenantId = (req.body as OrderRequest).tenantId;
         if (couponCode) {
             discountPercentage = await this.getDiscountPercentage(
                 couponCode,
@@ -36,9 +44,32 @@ export class OrderController {
         const taxes = Math.round((priceAfterDiscount * TAXES_PERCENTAGE) / 100);
         const DELIVERY_CHARGES = 60;
         const finalPrice = priceAfterDiscount + taxes + DELIVERY_CHARGES;
-        httpResponse(req, res, HttpStatus.OK, ResponseMessage.SUCCESS, {
-            totalPrice: finalPrice
-        });
+
+        // Create order
+        try {
+            const newOrder = await orderModel.create({
+                cart,
+                address,
+                comment,
+                customerId,
+                deliveryCharges: DELIVERY_CHARGES,
+                discount: discountAmount,
+                paymentMode,
+                orderStatus: OrderStatus.RECEIVED,
+                paymentStatus: PaymentStatus.PENDING,
+                taxes,
+                tenantId,
+                total: finalPrice
+            });
+
+            httpResponse(req, res, HttpStatus.OK, ResponseMessage.SUCCESS, {
+                order: newOrder
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                next(CreateHttpError.DatabaseError(error.message));
+            }
+        }
     };
 
     private calculateTotal = async (cart: CartItem[]) => {

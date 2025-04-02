@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { PriceType } from "../constants";
+import { PaymentMode, PriceType } from "../constants";
 
 export interface AuthCookie {
     accessToken: string;
@@ -18,6 +18,10 @@ export interface AuthRequest extends Request {
 export interface OrderRequest extends Request {
     tenantId: string;
     couponCode?: string;
+    paymentMode: PaymentMode;
+    address: string;
+    customerId: mongoose.Types.ObjectId;
+    comment?: string;
 }
 export enum ToppingEvents {
     TOPPING_CREATE = "TOPPING_CREATE",
