@@ -14,8 +14,8 @@ import orderRouter from "./modules/order/orderRouter";
 
 const app: Application = express();
 const ALLOWED_DOMAINS = [
-    Config.CORS_CLIENT_URL as string,
-    Config.CORS_ADMIN_URL as string
+    Config.CLIENT_URL as string,
+    Config.ADMIN_URL as string
 ];
 
 // Middlewares

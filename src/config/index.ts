@@ -9,8 +9,9 @@ const Config = {
     BASE_URL: process.env.BASE_URL,
     JWKS_URI: process.env.JWKS_URI,
     DATABASE_URL: process.env.DATABASE_URL,
-    CORS_CLIENT_URL: process.env.CORS_CLIENT_URL,
-    CORS_ADMIN_URL: process.env.CORS_ADMIN_URL
+    CLIENT_URL: process.env.CLIENT_URL,
+    ADMIN_URL: process.env.ADMIN_URL,
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY
 };
 
 export default Config;
