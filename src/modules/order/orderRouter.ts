@@ -2,9 +2,11 @@ import express, { NextFunction, Request, Response } from "express";
 import authenticate from "../../common/middlewares/authenticate";
 import asyncHandler from "../../common/utils/asyncHandler";
 import { OrderController } from "./orderController";
+import { StripeGW } from "../payment/stripe";
 
 const router = express.Router();
-const orderController = new OrderController();
+const paymentGW = new StripeGW();
+const orderController = new OrderController(paymentGW);
 
 router.post(
     "/",

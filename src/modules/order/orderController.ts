@@ -15,8 +15,10 @@ import orderModel from "./orderModel";
 import { OrderStatus, PaymentStatus } from "../../constants";
 import idempotencyModel from "../idempotency/idempotencyModel";
 import mongoose from "mongoose";
+import { PaymentGW } from "../payment/paymentGateway";
 
 export class OrderController {
+    constructor(private paymentGW: PaymentGW) {}
     create = async (req: Request, res: Response, next: NextFunction) => {
         const { cart } = req.body as unknown as { cart: CartItem[] };
         const {
@@ -98,9 +100,17 @@ export class OrderController {
                 }
             }
             // payment processing
+            const session = await this.paymentGW.createSession({
+                amount: finalPrice,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                orderId: newOrder[0]._id.toString(),
+                tenantId,
+                currency: "inr",
+                idempotencyKey: idempotencyKey as string
+            });
 
             httpResponse(req, res, HttpStatus.OK, ResponseMessage.SUCCESS, {
-                order: newOrder
+                paymentUrl: session.paymentUrl
             });
         } catch (error) {
             if (error instanceof Error) {
