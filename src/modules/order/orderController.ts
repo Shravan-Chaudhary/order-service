@@ -12,7 +12,7 @@ import CouponModel from "../coupon/coupon-model";
 import { CreateHttpError, httpResponse, HttpStatus } from "../../common/http";
 import ResponseMessage from "../../common/constants/responseMessage";
 import orderModel from "./orderModel";
-import { OrderStatus, PaymentStatus } from "../../constants";
+import { OrderStatus, PaymentMode, PaymentStatus } from "../../constants";
 import idempotencyModel from "../idempotency/idempotencyModel";
 import mongoose from "mongoose";
 import { PaymentGW } from "../payment/paymentGateway";
@@ -100,17 +100,23 @@ export class OrderController {
                 }
             }
             // payment processing
-            const session = await this.paymentGW.createSession({
-                amount: finalPrice,
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-                orderId: newOrder[0]._id.toString(),
-                tenantId,
-                currency: "inr",
-                idempotencyKey: idempotencyKey as string
-            });
+            if (paymentMode === PaymentMode.CARD) {
+                const session = await this.paymentGW.createSession({
+                    amount: finalPrice,
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                    orderId: newOrder[0]._id.toString(),
+                    tenantId,
+                    currency: "inr",
+                    idempotencyKey: idempotencyKey as string
+                });
+
+                httpResponse(req, res, HttpStatus.OK, ResponseMessage.SUCCESS, {
+                    paymentUrl: session.paymentUrl
+                });
+            }
 
             httpResponse(req, res, HttpStatus.OK, ResponseMessage.SUCCESS, {
-                paymentUrl: session.paymentUrl
+                paymentUrl: null
             });
         } catch (error) {
             if (error instanceof Error) {
