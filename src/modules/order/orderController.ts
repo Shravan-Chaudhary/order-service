@@ -15,7 +15,7 @@ import orderModel from "./orderModel";
 import { OrderStatus, PaymentMode, PaymentStatus } from "../../constants";
 import idempotencyModel from "../idempotency/idempotencyModel";
 import mongoose from "mongoose";
-import { PaymentGW } from "../payment/paymentGateway";
+import { PaymentGW } from "../payment/paymentTypes";
 
 export class OrderController {
     constructor(private paymentGW: PaymentGW) {}

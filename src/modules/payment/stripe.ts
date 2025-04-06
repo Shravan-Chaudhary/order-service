@@ -1,9 +1,10 @@
 import Config from "../../config";
 import {
-    GatewayPaymentStatus,
+    CustomMetadata,
     PaymentGW,
-    PaymentOptions
-} from "./paymentGateway";
+    PaymentOptions,
+    VerifiedSession
+} from "./paymentTypes";
 import Stripe from "stripe";
 
 export class StripeGW implements PaymentGW {
@@ -45,12 +46,12 @@ export class StripeGW implements PaymentGW {
         };
     }
     async getSession(id: string) {
-        return Promise.resolve({
-            id: id,
-            metadata: {
-                orderId: "2"
-            },
-            paymentStatus: "paid" as GatewayPaymentStatus
-        });
+        const session = await this.stripe.checkout.sessions.retrieve(id);
+        const VerifiedSession: VerifiedSession = {
+            id: session.id,
+            metadata: session.metadata as unknown as CustomMetadata,
+            paymentStatus: session.payment_status
+        };
+        return VerifiedSession;
     }
 }

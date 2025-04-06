@@ -10,13 +10,13 @@ interface PaymentSession {
     paymentUrl: string;
     paymentStatus: GatewayPaymentStatus;
 }
-interface CustomMetadata {
+export interface CustomMetadata {
     orderId: string;
 }
 
 export type GatewayPaymentStatus = "no_payment_required" | "paid" | "unpaid";
 
-interface VerifiedSession {
+export interface VerifiedSession {
     id: string;
     metadata: CustomMetadata;
     paymentStatus: GatewayPaymentStatus;
