@@ -2,14 +2,17 @@ import { Request, Response, NextFunction } from "express";
 import { PaymentGW } from "./paymentTypes";
 import orderModel from "../order/orderModel";
 import { PaymentStatus } from "../../constants";
+import { MessageBroker } from "../../types/broker";
+import { CreateHttpError } from "../../common/http";
+import { Logger } from "winston";
 
 export class PaymentController {
-    constructor(private paymentGW: PaymentGW) {}
-    handleWebhook = async (
-        req: Request,
-        res: Response,
-        _next: NextFunction
-    ) => {
+    constructor(
+        private paymentGW: PaymentGW,
+        private broker: MessageBroker,
+        private logger: Logger
+    ) {}
+    handleWebhook = async (req: Request, res: Response, next: NextFunction) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const webhookBody = req.body;
 
@@ -20,8 +23,7 @@ export class PaymentController {
                 webhookBody.data.object.id as string
             );
             const isPaymentSuccess = VerifiedSession.paymentStatus === "paid";
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const updatedOrder = await orderModel.updateOne(
+            const updatedOrder = await orderModel.findOneAndUpdate(
                 { _id: VerifiedSession.metadata.orderId },
                 {
                     paymentStatus: isPaymentSuccess
@@ -30,6 +32,21 @@ export class PaymentController {
                 },
                 { new: true }
             );
+            try {
+                // Safely stringify the order data
+                const orderPayload = JSON.stringify(updatedOrder);
+                await this.broker.sendMessage("order", orderPayload);
+            } catch (error) {
+                if (error instanceof Error) {
+                    this.logger.error(
+                        "Error sending message to broker: ",
+                        error.message
+                    );
+                    return next(
+                        CreateHttpError.InternalServerError(error.message)
+                    );
+                }
+            }
         }
         return res.json({ status: "success" });
     };

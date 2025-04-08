@@ -18,6 +18,7 @@ const startServer = async () => {
             }
         });
         broker = createMessageBroker();
+        await broker.connectProducer();
         await broker.connectConsumer();
         await broker.consumeMessage(["product"], true);
 
@@ -33,6 +34,7 @@ const startServer = async () => {
     } catch (error) {
         if (error instanceof Error) {
             if (broker) {
+                await broker.disconnectProducer();
                 await broker.disconnectConsumer();
             }
             logger.error(error);

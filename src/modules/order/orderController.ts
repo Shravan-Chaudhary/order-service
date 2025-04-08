@@ -16,9 +16,15 @@ import { OrderStatus, PaymentMode, PaymentStatus } from "../../constants";
 import idempotencyModel from "../idempotency/idempotencyModel";
 import mongoose from "mongoose";
 import { PaymentGW } from "../payment/paymentTypes";
+import { MessageBroker } from "../../types/broker";
+import { Logger } from "winston";
 
 export class OrderController {
-    constructor(private paymentGW: PaymentGW) {}
+    constructor(
+        private paymentGW: PaymentGW,
+        private broker: MessageBroker,
+        private logger: Logger
+    ) {}
     create = async (req: Request, res: Response, next: NextFunction) => {
         const { cart } = req.body as unknown as { cart: CartItem[] };
         const {
@@ -109,10 +115,32 @@ export class OrderController {
                     currency: "inr",
                     idempotencyKey: idempotencyKey as string
                 });
+                // Send message to broker
+                try {
+                    // Safely stringify the order data
+                    const orderPayload = JSON.stringify(newOrder);
+                    await this.broker.sendMessage("order", orderPayload);
+                } catch (error) {
+                    if (error instanceof Error) {
+                        this.logger.error(
+                            "Error sending message to broker: ",
+                            error.message
+                        );
+                        return next(
+                            CreateHttpError.InternalServerError(error.message)
+                        );
+                    }
+                }
 
-                httpResponse(req, res, HttpStatus.OK, ResponseMessage.SUCCESS, {
-                    paymentUrl: session.paymentUrl
-                });
+                return httpResponse(
+                    req,
+                    res,
+                    HttpStatus.OK,
+                    ResponseMessage.SUCCESS,
+                    {
+                        paymentUrl: session.paymentUrl
+                    }
+                );
             }
 
             httpResponse(req, res, HttpStatus.OK, ResponseMessage.SUCCESS, {
