@@ -20,6 +20,7 @@ export interface CreateCustomerData {
     firstName: string;
     lastName: string;
     email: string;
+    addresses: Address[];
 }
 
 export interface AddAddressRequest extends Request {

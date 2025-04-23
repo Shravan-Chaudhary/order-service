@@ -8,13 +8,16 @@ export class CustomerService {
         userId,
         firstName,
         lastName,
-        email
+        email,
+        addresses
     }: CreateCustomerData) {
         const customer = await CustomerModel.create({
             userId,
             firstName,
             lastName,
-            email
+            email,
+
+            addresses
         });
 
         return customer;

@@ -4,6 +4,7 @@ import { CreateHttpError, httpResponse, HttpStatus } from "../../common/http";
 import { CustomerService } from "./customer-service";
 import { AuthRequest } from "../../types";
 import { AddAddressRequest } from "./types";
+import CustomerModel from "./customer-model";
 
 export class CustomerController {
     constructor(readonly customerService: CustomerService) {}
@@ -19,16 +20,16 @@ export class CustomerController {
         const customer = await this.customerService.findOne(userId);
 
         if (!customer) {
-            const customer = await this.customerService.create({
+            const newCustomer = await CustomerModel.create({
                 userId,
                 firstName,
                 lastName,
-                email
+                email,
+                addresses: []
             });
-            httpResponse(req, res, HttpStatus.OK, ResponseMessage.SUCCESS, {
-                customer
-            });
-            return;
+
+            // todo: add logging
+            return res.json(newCustomer);
         }
         httpResponse(req, res, HttpStatus.OK, ResponseMessage.SUCCESS, {
             customer

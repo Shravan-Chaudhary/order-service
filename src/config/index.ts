@@ -11,7 +11,11 @@ const Config = {
     DATABASE_URL: process.env.DATABASE_URL,
     CLIENT_URL: process.env.CLIENT_URL,
     ADMIN_URL: process.env.ADMIN_URL,
-    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+    KAFKA_CLIENT_ID: process.env.KAFKA_CLIENT_ID,
+    KAFKA_BROKERS: process.env.KAFKA_BROKERS,
+    SASL_USERNAME: process.env.SASL_USERNAME,
+    SASL_PASSWORD: process.env.SASL_PASSWORD
 };
 
 export default Config;
