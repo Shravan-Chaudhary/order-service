@@ -34,8 +34,8 @@ export class StripeGW implements PaymentGW {
                     }
                 ],
                 mode: "payment",
-                success_url: `${Config.CLIENT_URL}/payment?success=true&orderId=${options.orderId}`,
-                cancel_url: `${Config.CLIENT_URL}/payment?success=false&orderId=${options.orderId}`
+                success_url: `${Config.CLIENT_URL}/payment?success=true&orderId=${options.orderId}&restaurantId=${options.tenantId}`,
+                cancel_url: `${Config.CLIENT_URL}/payment?success=false&orderId=${options.orderId}&restaurantId=${options.tenantId}`
             },
             { idempotencyKey: options.idempotencyKey }
         );

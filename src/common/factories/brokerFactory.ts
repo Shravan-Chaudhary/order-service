@@ -10,7 +10,6 @@ export const createMessageBroker = (): MessageBroker => {
     }
     // singleton
     if (!broker) {
-        // TODO: switch to env vars
         broker = new KafkaBroker(Config.KAFKA_CLIENT_ID, [
             Config.KAFKA_BROKERS!
         ]);
