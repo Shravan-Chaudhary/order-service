@@ -16,7 +16,8 @@ import paymentRouter from "./modules/payment/paymentRouter";
 const app: Application = express();
 const ALLOWED_DOMAINS = [
     Config.CLIENT_URL as string,
-    Config.ADMIN_URL as string
+    Config.ADMIN_URL as string,
+    "https://epicfood.live"
 ];
 
 // Middlewares
