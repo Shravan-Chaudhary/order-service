@@ -1,4 +1,9 @@
 import { NextFunction, Request, Response } from "express";
+import mongoose from "mongoose";
+import { Logger } from "winston";
+import ResponseMessage from "../../common/constants/responseMessage";
+import { CreateHttpError, httpResponse, HttpStatus } from "../../common/http";
+import { OrderStatus, PaymentMode, PaymentStatus } from "../../constants";
 import {
     CartItem,
     OrderRequest,
@@ -6,18 +11,14 @@ import {
     Topping,
     ToppingPriceCache
 } from "../../types";
+import { MessageBroker } from "../../types/broker";
+import CouponModel from "../coupon/coupon-model";
+import CustomerModel from "../customer/customer-model";
+import idempotencyModel from "../idempotency/idempotencyModel";
+import { PaymentGW } from "../payment/paymentTypes";
 import productCacheModel from "../productCache/productCacheModel";
 import toppingCacheModel from "../toppingCache/toppingCacheModel";
-import CouponModel from "../coupon/coupon-model";
-import { CreateHttpError, httpResponse, HttpStatus } from "../../common/http";
-import ResponseMessage from "../../common/constants/responseMessage";
 import orderModel from "./orderModel";
-import { OrderStatus, PaymentMode, PaymentStatus } from "../../constants";
-import idempotencyModel from "../idempotency/idempotencyModel";
-import mongoose from "mongoose";
-import { PaymentGW } from "../payment/paymentTypes";
-import { MessageBroker } from "../../types/broker";
-import { Logger } from "winston";
 
 export class OrderController {
     constructor(
@@ -151,6 +152,36 @@ export class OrderController {
                 next(CreateHttpError.DatabaseError(error.message));
             }
         }
+    };
+
+    getMine = async (req: Request, res: Response, next: NextFunction) => {
+        const { auth } = req as unknown as {
+            auth: {
+                sub: string;
+            };
+        };
+        const userId = auth.sub;
+
+        if (!userId) {
+            return next(CreateHttpError.NotFoundError("No UserId found"));
+        }
+
+        const customer = await CustomerModel.findOne({
+            userId
+        });
+
+        if (!customer) {
+            return next(CreateHttpError.NotFoundError("No Customer found"));
+        }
+
+        const orders = await orderModel.find(
+            { customerId: customer._id },
+            { cart: 0 }
+        );
+
+        return httpResponse(req, res, HttpStatus.OK, ResponseMessage.SUCCESS, {
+            orders
+        });
     };
 
     private calculateTotal = async (cart: CartItem[]) => {

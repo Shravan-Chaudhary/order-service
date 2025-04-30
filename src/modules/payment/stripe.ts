@@ -17,7 +17,8 @@ export class StripeGW implements PaymentGW {
         const session = await this.stripe.checkout.sessions.create(
             {
                 metadata: {
-                    orderId: options.orderId
+                    orderId: options.orderId,
+                    restaurantId: options.tenantId
                 },
                 billing_address_collection: "required",
                 line_items: [
