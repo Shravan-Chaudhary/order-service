@@ -20,7 +20,7 @@ router.post(
 );
 
 router.get(
-    "/",
+    "/mine",
     authenticate,
     asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
         await orderController.getMine(req, res, next);
