@@ -1,10 +1,11 @@
-import { Request } from "express";
+import { NextFunction, Request, Response } from "express";
 import { expressjwt, GetVerificationKey } from "express-jwt";
 import jwsksClient from "jwks-rsa";
 import { AuthCookie } from "../../types";
 import Config from "../../config";
+import { CreateHttpError } from "../http";
 
-export default expressjwt({
+const jwtMiddleware = expressjwt({
     secret: jwsksClient.expressJwtSecret({
         jwksUri: Config.JWKS_URI!,
         cache: true,
@@ -27,3 +28,16 @@ export default expressjwt({
         return accessToken;
     }
 });
+export default async function authenticate(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+    await jwtMiddleware(req, res, (err) => {
+        if (err && err instanceof Error) {
+            // Convert JWT errors to your application's error format
+            return next(CreateHttpError.UnauthorizedError(err.message));
+        }
+        next();
+    });
+}
