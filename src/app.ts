@@ -17,17 +17,22 @@ const app: Application = express();
 const ALLOWED_DOMAINS = [
     Config.CLIENT_URL as string,
     Config.ADMIN_URL as string,
-    "https://epicfood.live"
+    "https://epicfood.live",
+    "https://www.epicfood.live"
 ];
 
 // Middlewares
-app.use(helmet());
+
 app.use(
     cors({
         origin: ALLOWED_DOMAINS,
-        credentials: true
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization", "idempotency-key"]
     })
 );
+app.options("*", cors());
+app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "../public")));
