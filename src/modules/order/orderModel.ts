@@ -66,10 +66,6 @@ const orderSchema = new mongoose.Schema<Order>(
             type: String,
             required: true
         },
-        comment: {
-            type: String,
-            required: false
-        },
         customerId: {
             type: Schema.Types.ObjectId,
             ref: "Customer",

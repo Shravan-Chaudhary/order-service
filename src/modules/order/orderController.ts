@@ -28,14 +28,26 @@ export class OrderController {
     ) {}
     create = async (req: Request, res: Response, next: NextFunction) => {
         const { cart } = req.body as unknown as { cart: CartItem[] };
-        const {
-            couponCode,
+        const { couponCode, tenantId, paymentMode, address, customerId } =
+            req.body as OrderRequest;
+        this.logger.info("Processing order request", {
             tenantId,
-            paymentMode,
-            address,
             customerId,
-            comment
-        } = req.body as OrderRequest;
+            paymentMode,
+            cartItemCount: cart?.length
+        });
+        // Validate required fields
+        if (!cart || !Array.isArray(cart) || cart.length === 0) {
+            return next(
+                CreateHttpError.BadRequestError("Cart items are required")
+            );
+        }
+
+        if (!tenantId || !address || !customerId || !paymentMode) {
+            return next(
+                CreateHttpError.BadRequestError("Missing required fields")
+            );
+        }
 
         const totalPrice = await this.calculateTotal(cart);
         let discountPercentage: number = 0;
@@ -58,7 +70,14 @@ export class OrderController {
 
         // Create order
         try {
-            const idempotencyKey = req.headers["idempotency-key"];
+            const idempotencyKey = req.headers["idempotency-key"] as string;
+            if (!idempotencyKey) {
+                return next(
+                    CreateHttpError.BadRequestError(
+                        "Idempotency key is required"
+                    )
+                );
+            }
             const idempotency = await idempotencyModel.findOne({
                 key: idempotencyKey
             });
@@ -73,7 +92,6 @@ export class OrderController {
                             {
                                 cart,
                                 address,
-                                comment,
                                 customerId,
                                 deliveryCharges: DELIVERY_CHARGES,
                                 discount: discountAmount,
@@ -114,7 +132,7 @@ export class OrderController {
                     orderId: newOrder[0]._id.toString(),
                     tenantId,
                     currency: "inr",
-                    idempotencyKey: idempotencyKey as string
+                    idempotencyKey: idempotencyKey
                 });
                 // Send message to broker
                 try {
@@ -149,7 +167,15 @@ export class OrderController {
             });
         } catch (error) {
             if (error instanceof Error) {
-                next(CreateHttpError.DatabaseError(error.message));
+                // Catch any unexpected errors
+                this.logger.error("Unhandled error in order creation", {
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : "Unknown error",
+                    stack: error instanceof Error ? error.stack : undefined
+                });
+                return next(CreateHttpError.DatabaseError(error.message));
             }
         }
     };

@@ -28,7 +28,12 @@ app.use(
         origin: ALLOWED_DOMAINS,
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization", "idempotency-key"]
+        allowedHeaders: [
+            "Content-Type",
+            "Authorization",
+            "idempotency-key",
+            "Idempotency-Key"
+        ]
     })
 );
 app.options("*", cors());
