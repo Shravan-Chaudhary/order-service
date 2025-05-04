@@ -250,9 +250,17 @@ export class OrderController {
         const productIds = cart.map((item) => item._id);
 
         // TODO: error handling
-        const productPricings = await productCacheModel.find({
-            productId: { $in: productIds }
-        });
+        let productPricings: ProductPricingCache[] = [];
+        try {
+            productPricings = await productCacheModel.find({
+                productId: { $in: productIds }
+            });
+        } catch (_error) {
+            const err = CreateHttpError.DatabaseError(
+                "Error fetching product cache"
+            );
+            throw err;
+        }
 
         // If product or topping doest not exists in cache, then:
         // 1. Fetch product from inventory service
@@ -267,19 +275,27 @@ export class OrderController {
             ];
         }, []);
 
-        const toppingsPricings = await toppingCacheModel.find({
-            toppingId: { $in: cartToppingsIds }
-        });
-
+        let toppingsPricings: ToppingPriceCache[] = [];
+        try {
+            toppingsPricings = await toppingCacheModel.find({
+                toppingId: { $in: cartToppingsIds }
+            });
+        } catch (_error) {
+            const err = CreateHttpError.DatabaseError(
+                "Error fetching topping cache"
+            );
+            throw err;
+        }
         const totalPrice = cart.reduce((acc, curr) => {
             const cachedProductPrice = productPricings.find(
                 (product) => product.productId === curr._id
             );
 
             if (!cachedProductPrice) {
-                throw new Error(
+                const err = CreateHttpError.NotFoundError(
                     `Product pricing not found for product ID: ${curr._id}`
                 );
+                throw err;
             }
 
             return (
