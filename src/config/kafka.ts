@@ -8,6 +8,7 @@ import {
 import { MessageBroker } from "../types/broker";
 import { handleProductUpdate } from "../modules/productCache/productCacheHandler";
 import Config from ".";
+import logger from "./logger";
 
 export class KafkaBroker implements MessageBroker {
     private consumer: Consumer;
@@ -65,11 +66,13 @@ export class KafkaBroker implements MessageBroker {
                         // eslint-disable-next-line no-console
                         console.log("Unknown topic", topic);
                 }
-                // eslint-disable-next-line no-console
-                console.log({
-                    value: message.value?.toString(),
-                    topic,
-                    partition
+
+                logger.info("Kafka message consumed", {
+                    meta: {
+                        topic,
+                        partition,
+                        message: message.value?.toString()
+                    }
                 });
             }
         });
