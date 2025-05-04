@@ -51,7 +51,7 @@ export interface PriceConfiguration {
 }
 export interface ProductPricingCache {
     productId: string;
-    priceConfiguration: PriceConfiguration;
+    priceConfiguration: ProductPriceConfiguration;
 }
 
 export enum ProductEvents {
@@ -63,17 +63,20 @@ export interface ProductMessage {
     event_type: ProductEvents;
     data: {
         _id: string;
-        priceConfiguration: PriceConfiguration;
+        priceConfiguration: ProductPriceConfiguration;
     };
 }
 
-export interface ProductPriceConfiguration {
-    [key: string]: {
-        priceType: PriceType.BASE | PriceType.ADDITIONAL;
-        availableOptions: {
-            [key: string]: number;
-        };
+export interface ProductPrice {
+    priceType: PriceType.BASE | PriceType.ADDITIONAL;
+    availableOptions: {
+        [key: string]: number;
     };
+    _id: string;
+}
+
+export interface ProductPriceConfiguration {
+    [key: string]: ProductPrice;
 }
 
 export type Topping = {
