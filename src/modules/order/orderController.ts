@@ -38,24 +38,41 @@ export class OrderController {
         });
         // Validate required fields
         if (!cart || !Array.isArray(cart) || cart.length === 0) {
+            this.logger.error("Cart items are required");
             return next(
                 CreateHttpError.BadRequestError("Cart items are required")
             );
         }
 
         if (!tenantId || !address || !customerId || !paymentMode) {
+            this.logger.error("Missing required fields");
             return next(
                 CreateHttpError.BadRequestError("Missing required fields")
             );
         }
 
         const totalPrice = await this.calculateTotal(cart);
+        this.logger.info("Total price calculated", {
+            totalPrice
+        });
         let discountPercentage: number = 0;
         if (couponCode) {
-            discountPercentage = await this.getDiscountPercentage(
-                couponCode,
-                tenantId
-            );
+            try {
+                discountPercentage = await this.getDiscountPercentage(
+                    couponCode,
+                    tenantId
+                );
+                this.logger.info("Discount percentage fetched");
+            } catch (_error) {
+                this.logger.error(
+                    "Error fetching coupon code discount percentage"
+                );
+                return next(
+                    CreateHttpError.InternalServerError(
+                        "Error fetching coupon code discount percentage"
+                    )
+                );
+            }
         }
 
         const discountAmount = Math.round(
@@ -67,20 +84,33 @@ export class OrderController {
         const taxes = Math.round((priceAfterDiscount * TAXES_PERCENTAGE) / 100);
         const DELIVERY_CHARGES = 60;
         const finalPrice = priceAfterDiscount + taxes + DELIVERY_CHARGES;
+        this.logger.info("Final price calculated", finalPrice);
 
         // Create order
         try {
             const idempotencyKey = req.headers["idempotency-key"] as string;
             if (!idempotencyKey) {
+                this.logger.error("Idempotency key is required");
                 return next(
                     CreateHttpError.BadRequestError(
                         "Idempotency key is required"
                     )
                 );
             }
-            const idempotency = await idempotencyModel.findOne({
-                key: idempotencyKey
-            });
+            let idempotency;
+            try {
+                idempotency = await idempotencyModel.findOne({
+                    key: idempotencyKey
+                });
+                this.logger.info("Idempotency key fetched");
+            } catch (_error) {
+                this.logger.error("Error fetching idempotency key");
+                return next(
+                    CreateHttpError.InternalServerError(
+                        "Error fetching idempotency key"
+                    )
+                );
+            }
             let newOrder = idempotency ? [idempotency.response] : [];
             if (!idempotency) {
                 const session = await mongoose.startSession();
@@ -105,11 +135,13 @@ export class OrderController {
                         ],
                         { session }
                     );
+                    this.logger.info("Order created", newOrder);
 
                     await idempotencyModel.create(
                         [{ key: idempotencyKey, response: newOrder[0] }],
                         { session }
                     );
+                    this.logger.info("Idempotency key created database");
 
                     await session.commitTransaction();
                 } catch (error) {
@@ -117,7 +149,9 @@ export class OrderController {
                         await session.abortTransaction();
                         await session.endSession();
                         return next(
-                            CreateHttpError.DatabaseError(error.message)
+                            CreateHttpError.DatabaseError(
+                                "Error creating order or idempotency in database"
+                            )
                         );
                     }
                 } finally {
@@ -134,11 +168,13 @@ export class OrderController {
                     currency: "inr",
                     idempotencyKey: idempotencyKey
                 });
+                this.logger.info("Payment session created", session);
                 // Send message to broker
                 try {
                     // Safely stringify the order data
                     const orderPayload = JSON.stringify(newOrder);
                     await this.broker.sendMessage("order", orderPayload);
+                    this.logger.info("Message sent to broker");
                 } catch (error) {
                     if (error instanceof Error) {
                         this.logger.error(
