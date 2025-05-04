@@ -15,7 +15,12 @@ export const handleProductUpdate = async (value: string) => {
         });
 
         // Validate the message structure
-        if (!product || !product.data || !product.data._id) {
+        if (
+            !product ||
+            !product.event_type ||
+            !product.data ||
+            !product.data._id
+        ) {
             logger.error("Invalid product message structure", {
                 message: value.substring(0, 200) // Log a portion of the message
             });
