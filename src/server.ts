@@ -20,7 +20,7 @@ const startServer = async () => {
         broker = createMessageBroker();
         await broker.connectProducer();
         await broker.connectConsumer();
-        await broker.consumeMessage(["product"], true);
+        await broker.consumeMessage(["product", "topping"], false);
 
         // Start Application
         app.listen(PORT, () => {
