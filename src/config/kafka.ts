@@ -9,6 +9,7 @@ import { MessageBroker } from "../types/broker";
 import { handleProductUpdate } from "../modules/productCache/productCacheHandler";
 import Config from ".";
 import logger from "./logger";
+import { handleToppingUpdate } from "../modules/toppingCache/toppingCacheHandler";
 
 export class KafkaBroker implements MessageBroker {
     private consumer: Consumer;
@@ -60,6 +61,11 @@ export class KafkaBroker implements MessageBroker {
                     case "product":
                         if (message.value) {
                             await handleProductUpdate(message.value.toString());
+                        }
+                        return;
+                    case "topping":
+                        if (message.value) {
+                            await handleToppingUpdate(message.value.toString());
                         }
                         return;
                     default:
