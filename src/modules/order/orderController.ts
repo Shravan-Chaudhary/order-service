@@ -269,7 +269,10 @@ export class OrderController {
             {}
         );
 
-        const order = await orderModel.findOne({ _id: orderId }, projection);
+        const order = await orderModel
+            .findOne({ _id: orderId }, projection)
+            .populate("customerId")
+            .exec();
         if (!order) {
             return next(CreateHttpError.NotFoundError("No Order found"));
         }
