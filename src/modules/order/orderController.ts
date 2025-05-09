@@ -285,7 +285,7 @@ export class OrderController {
             );
         }
 
-        const myRestaurantOrder = order.tenantId == tenantId;
+        const myRestaurantOrder = order.tenantId.toString() == tenantId;
         if (role === "manager" && myRestaurantOrder) {
             return httpResponse(
                 req as unknown as Request,
@@ -301,7 +301,7 @@ export class OrderController {
             if (!customer) {
                 return next(CreateHttpError.NotFoundError("No Customer found"));
             }
-            if (order.customerId === customer._id) {
+            if (order.customerId.toString() === customer._id.toString()) {
                 return httpResponse(
                     req as unknown as Request,
                     res,
