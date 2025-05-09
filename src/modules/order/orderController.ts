@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { Logger } from "winston";
 import ResponseMessage from "../../common/constants/responseMessage";
 import { CreateHttpError, httpResponse, HttpStatus } from "../../common/http";
-import { OrderStatus, PaymentMode, PaymentStatus } from "../../constants";
+import { PaymentMode, PaymentStatus } from "../../constants";
 import {
     AuthRequest,
     CartItem,
@@ -21,6 +21,7 @@ import { PaymentGW } from "../payment/paymentTypes";
 import productCacheModel from "../productCache/productCacheModel";
 import toppingCacheModel from "../toppingCache/toppingCacheModel";
 import orderModel from "./orderModel";
+import { OrderStatus } from "./orderTypes";
 
 export class OrderController {
     constructor(

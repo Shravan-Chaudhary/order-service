@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
-import { Order } from "./orderTypes";
+import { Order, OrderStatus } from "./orderTypes";
 import { CartItem } from "../../types";
-import { OrderStatus, PaymentMode, PaymentStatus } from "../../constants";
+import { PaymentMode, PaymentStatus } from "../../constants";
 
 const toppingSchema = new mongoose.Schema({
     _id: {

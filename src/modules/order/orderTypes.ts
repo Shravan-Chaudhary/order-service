@@ -1,6 +1,15 @@
 import mongoose from "mongoose";
 import { CartItem } from "../../types";
-import { OrderStatus, PaymentMode, PaymentStatus } from "../../constants";
+import { PaymentMode, PaymentStatus } from "../../constants";
+
+export enum OrderStatus {
+    RECEIVED = "received",
+    CONFIRMED = "confirmed",
+    PREPAIRED = "prepared",
+    OUT_FOR_DELIVERY = "out_for_delivery",
+    // CANCELLED = "cancelled",
+    DELIVERED = "delivered"
+}
 
 export interface Order {
     cart: CartItem[];
