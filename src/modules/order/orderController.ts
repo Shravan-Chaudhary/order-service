@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-base-to-string */
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import { Logger } from "winston";
@@ -255,7 +256,19 @@ export class OrderController {
             tenant: tenantId
         } = (req as unknown as AuthRequest).auth;
 
-        const order = await orderModel.findOne({ _id: orderId });
+        const fields = req.query.fields
+            ? req.query.fields.toString().split(",")
+            : [];
+
+        const projection = fields.reduce<Record<string, number>>(
+            (acc, field) => {
+                acc[field] = 1;
+                return acc;
+            },
+            {}
+        );
+
+        const order = await orderModel.findOne({ _id: orderId }, projection);
         if (!order) {
             return next(CreateHttpError.NotFoundError("No Order found"));
         }
