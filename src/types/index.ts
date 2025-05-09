@@ -13,6 +13,7 @@ export interface AuthRequest extends Request {
         firstName: string;
         lastName: string;
         email: string;
+        tenant?: string;
     };
 }
 export interface OrderRequest extends Request {

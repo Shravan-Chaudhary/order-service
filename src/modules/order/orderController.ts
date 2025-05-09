@@ -5,6 +5,7 @@ import ResponseMessage from "../../common/constants/responseMessage";
 import { CreateHttpError, httpResponse, HttpStatus } from "../../common/http";
 import { OrderStatus, PaymentMode, PaymentStatus } from "../../constants";
 import {
+    AuthRequest,
     CartItem,
     OrderRequest,
     ProductPricingCache,
@@ -244,6 +245,59 @@ export class OrderController {
         return httpResponse(req, res, HttpStatus.OK, ResponseMessage.SUCCESS, {
             orders
         });
+    };
+
+    getSingle = async (req: Request, res: Response, next: NextFunction) => {
+        const orderId = req.params.orderId;
+        const {
+            sub: userId,
+            role,
+            tenant: tenantId
+        } = (req as unknown as AuthRequest).auth;
+
+        const order = await orderModel.findOne({ _id: orderId });
+        if (!order) {
+            return next(CreateHttpError.NotFoundError("No Order found"));
+        }
+
+        // Accessible to: Admin, Manager(for their own restaurant), Customer(for their own order)
+        if (role === "admin") {
+            return httpResponse(
+                req as unknown as Request,
+                res,
+                HttpStatus.OK,
+                ResponseMessage.SUCCESS,
+                order
+            );
+        }
+
+        const myRestaurantOrder = order.tenantId == tenantId;
+        if (role === "manager" && myRestaurantOrder) {
+            return httpResponse(
+                req as unknown as Request,
+                res,
+                HttpStatus.OK,
+                ResponseMessage.SUCCESS,
+                order
+            );
+        }
+
+        if (role === "customer") {
+            const customer = await CustomerModel.findOne({ userId });
+            if (!customer) {
+                return next(CreateHttpError.NotFoundError("No Customer found"));
+            }
+            if (order.customerId === customer._id) {
+                return httpResponse(
+                    req as unknown as Request,
+                    res,
+                    HttpStatus.OK,
+                    ResponseMessage.SUCCESS,
+                    order
+                );
+            }
+        }
+        return next(CreateHttpError.ForbiddenError("Not Authorized"));
     };
 
     private calculateTotal = async (cart: CartItem[]) => {

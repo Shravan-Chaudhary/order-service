@@ -27,4 +27,12 @@ router.get(
     })
 );
 
+router.get(
+    "/:orderId",
+    authenticate,
+    asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        await orderController.getSingle(req, res, next);
+    })
+);
+
 export default router;
