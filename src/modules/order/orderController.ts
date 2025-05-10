@@ -254,8 +254,10 @@ export class OrderController {
         const {
             sub: userId,
             role,
-            tenant: tenantId
+            tenant: tenantId = null
         } = (req as unknown as AuthRequest).auth;
+        this.logger.info("Auth payload:", (req as unknown as AuthRequest).auth);
+        this.logger.info("OrderId:", orderId);
 
         const fields = req.query.fields
             ? req.query.fields.toString().split(",")
