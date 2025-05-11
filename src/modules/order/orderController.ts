@@ -323,7 +323,9 @@ export class OrderController {
                     `Order customer ID: ${order.customerId.toString()}`
                 );
 
-                if (order.customerId.toString() === customer._id.toString()) {
+                if (
+                    order.customerId._id.toString() === customer._id.toString()
+                ) {
                     return httpResponse(
                         req as unknown as Request,
                         res,
