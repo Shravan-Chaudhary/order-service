@@ -302,17 +302,49 @@ export class OrderController {
         }
 
         if (role === "customer") {
-            const customer = await CustomerModel.findOne({ userId });
-            if (!customer) {
-                return next(CreateHttpError.NotFoundError("No Customer found"));
-            }
-            if (order.customerId.toString() === customer._id.toString()) {
-                return httpResponse(
-                    req as unknown as Request,
-                    res,
-                    HttpStatus.OK,
-                    ResponseMessage.SUCCESS,
-                    order
+            try {
+                // Add debug logs to see what's happening
+                this.logger.info(`Looking for customer with userId: ${userId}`);
+
+                const customer = await CustomerModel.findOne({ userId });
+
+                if (!customer) {
+                    this.logger.error(
+                        `No customer found with userId: ${userId}`
+                    );
+                    return next(
+                        CreateHttpError.NotFoundError("No Customer found")
+                    );
+                }
+
+                // Log both IDs to see if they match
+                this.logger.info(`Customer ID: ${customer._id.toString()}`);
+                this.logger.info(
+                    `Order customer ID: ${order.customerId.toString()}`
+                );
+
+                if (order.customerId.toString() === customer._id.toString()) {
+                    return httpResponse(
+                        req as unknown as Request,
+                        res,
+                        HttpStatus.OK,
+                        ResponseMessage.SUCCESS,
+                        order
+                    );
+                } else {
+                    this.logger.info(
+                        "Customer ID does not match order's customer ID"
+                    );
+                }
+            } catch (error) {
+                this.logger.error(
+                    "Error checking customer authorization:",
+                    error
+                );
+                return next(
+                    CreateHttpError.InternalServerError(
+                        "Error checking authorization"
+                    )
                 );
             }
         }
