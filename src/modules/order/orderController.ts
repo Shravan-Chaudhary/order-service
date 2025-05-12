@@ -262,6 +262,13 @@ export class OrderController {
         const fields = req.query.fields
             ? req.query.fields.toString().split(",")
             : [];
+        if (fields.length === 0) {
+            this.logger.info("No fields specified, returning all fields.");
+        }
+        this.logger.info("Requested fields:", fields);
+        if (!fields.includes("customerId")) {
+            projection.customerId = 1;
+        }
 
         const projection = fields.reduce<Record<string, number>>(
             (acc, field) => {
@@ -271,6 +278,7 @@ export class OrderController {
             {}
         );
 
+        this.logger.info("MongoDB Projection:", projection);
         const order = await orderModel
             .findOne({ _id: orderId }, projection)
             .populate("customerId")
