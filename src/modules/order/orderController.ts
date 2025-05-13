@@ -256,7 +256,6 @@ export class OrderController {
             role,
             tenant: tenantId = null
         } = (req as unknown as AuthRequest).auth;
-
         this.logger.info("Auth payload:", (req as unknown as AuthRequest).auth);
         this.logger.info("OrderId:", orderId);
 
@@ -264,70 +263,49 @@ export class OrderController {
             ? req.query.fields.toString().split(",")
             : [];
 
-        if (fields.length === 0) {
-            this.logger.info("No fields specified, returning all fields.");
-        }
-
-        this.logger.info("Requested fields:", fields);
-
-        // Always include customerId for authorization checks and population
         const projection = fields.reduce<Record<string, number>>(
             (acc, field) => {
                 acc[field] = 1;
                 return acc;
             },
-            { customerId: 1 } // Ensure customerId is always included
+            {}
         );
 
-        this.logger.info("MongoDB Projection:", projection);
+        const order = await orderModel
+            .findOne({ _id: orderId }, projection)
+            .populate("customerId")
+            .exec();
+        if (!order) {
+            return next(CreateHttpError.NotFoundError("No Order found"));
+        }
 
-        try {
-            let orderQuery = orderModel.findOne({ _id: orderId }, projection);
+        // Accessible to: Admin, Manager(for their own restaurant), Customer(for their own order)
+        if (role === "admin") {
+            return httpResponse(
+                req as unknown as Request,
+                res,
+                HttpStatus.OK,
+                ResponseMessage.SUCCESS,
+                order
+            );
+        }
 
-            // Dynamically populate customerId if it's requested or required
-            if (!fields.length || fields.includes("customerId")) {
-                orderQuery = orderQuery.populate("customerId");
-            }
+        const myRestaurantOrder = order.tenantId.toString() == tenantId;
+        if (role === "manager" && myRestaurantOrder) {
+            return httpResponse(
+                req as unknown as Request,
+                res,
+                HttpStatus.OK,
+                ResponseMessage.SUCCESS,
+                order
+            );
+        }
 
-            const order = await orderQuery.exec();
+        if (role === "customer") {
+            try {
+                // Add debug logs to see what's happening
+                this.logger.info(`Looking for customer with userId: ${userId}`);
 
-            if (!order) {
-                return next(CreateHttpError.NotFoundError("No Order found"));
-            }
-
-            // Ensure customerId is present for authorization checks
-            if (!order.customerId) {
-                this.logger.error("Order is missing customerId");
-                return next(
-                    CreateHttpError.InternalServerError(
-                        "Order data is incomplete"
-                    )
-                );
-            }
-
-            // Authorization checks
-            if (role === "admin") {
-                return httpResponse(
-                    req as unknown as Request,
-                    res,
-                    HttpStatus.OK,
-                    ResponseMessage.SUCCESS,
-                    order
-                );
-            }
-
-            const myRestaurantOrder = order.tenantId.toString() == tenantId;
-            if (role === "manager" && myRestaurantOrder) {
-                return httpResponse(
-                    req as unknown as Request,
-                    res,
-                    HttpStatus.OK,
-                    ResponseMessage.SUCCESS,
-                    order
-                );
-            }
-
-            if (role === "customer") {
                 const customer = await CustomerModel.findOne({ userId });
 
                 if (!customer) {
@@ -339,6 +317,7 @@ export class OrderController {
                     );
                 }
 
+                // Log both IDs to see if they match
                 this.logger.info(`Customer ID: ${customer._id.toString()}`);
                 this.logger.info(
                     `Order customer ID: ${order.customerId.toString()}`
@@ -359,20 +338,19 @@ export class OrderController {
                         "Customer ID does not match order's customer ID"
                     );
                 }
+            } catch (error) {
+                this.logger.error(
+                    "Error checking customer authorization:",
+                    error
+                );
+                return next(
+                    CreateHttpError.InternalServerError(
+                        "Error checking authorization"
+                    )
+                );
             }
-
-            return next(CreateHttpError.ForbiddenError("Not Authorized"));
-        } catch (error) {
-            this.logger.error("Error fetching order:", {
-                error: error instanceof Error ? error.message : "Unknown error",
-                stack: error instanceof Error ? error.stack : undefined
-            });
-            return next(
-                CreateHttpError.InternalServerError(
-                    "An unexpected error occurred"
-                )
-            );
         }
+        return next(CreateHttpError.ForbiddenError("Not Authorized"));
     };
 
     private calculateTotal = async (cart: CartItem[]) => {
