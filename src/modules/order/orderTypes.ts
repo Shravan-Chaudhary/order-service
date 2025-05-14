@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 import { CartItem } from "../../types";
 import { PaymentMode, PaymentStatus } from "../../constants";
 
+export enum OrderEvents {
+    ORDER_CREATE = "ORDER_CREATE",
+    PAYMENT_STATUS_UPDATE = "PAYMENT_STATUS_UPDATE",
+    ORDER_STATUS_UPDATE = "ORDER_STATUS_UPDATE"
+}
+
 export enum OrderStatus {
     RECEIVED = "received",
     CONFIRMED = "confirmed",

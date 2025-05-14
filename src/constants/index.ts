@@ -5,6 +5,12 @@ export enum WidgetType {
     RADIO = "radio"
 }
 
+export enum Roles {
+    ADMIN = "admin",
+    MANAGER = "manager",
+    CUSTOMER = "customer"
+}
+
 export enum PriceType {
     BASE = "base",
     ADDITIONAL = "additional"

@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-base-to-string */
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import { Logger } from "winston";
 import ResponseMessage from "../../common/constants/responseMessage";
 import { CreateHttpError, httpResponse, HttpStatus } from "../../common/http";
-import { PaymentMode, PaymentStatus } from "../../constants";
+import { PaymentMode, PaymentStatus, Roles } from "../../constants";
 import {
     AuthRequest,
     CartItem,
@@ -21,7 +22,7 @@ import { PaymentGW } from "../payment/paymentTypes";
 import productCacheModel from "../productCache/productCacheModel";
 import toppingCacheModel from "../toppingCache/toppingCacheModel";
 import orderModel from "./orderModel";
-import { OrderStatus } from "./orderTypes";
+import { OrderEvents, OrderStatus } from "./orderTypes";
 
 export class OrderController {
     constructor(
@@ -161,11 +162,15 @@ export class OrderController {
                     await session.endSession();
                 }
             }
+            const brokerMessage = {
+                event_type: OrderEvents.ORDER_CREATE,
+                data: newOrder[0]
+            };
             // payment processing
             if (paymentMode === PaymentMode.CARD) {
                 const session = await this.paymentGW.createSession({
                     amount: finalPrice,
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                     orderId: newOrder[0]._id.toString(),
                     tenantId,
                     currency: "inr",
@@ -174,9 +179,13 @@ export class OrderController {
                 this.logger.info("Payment session created", session);
                 // Send message to broker
                 try {
-                    // Safely stringify the order data
-                    const orderPayload = JSON.stringify(newOrder);
-                    await this.broker.sendMessage("order", orderPayload);
+                    await this.broker.sendMessage(
+                        "order",
+                        JSON.stringify(brokerMessage),
+                        (
+                            newOrder[0] as { _id: mongoose.Types.ObjectId }
+                        )._id.toString()
+                    );
                     this.logger.info("Message sent to broker");
                 } catch (error) {
                     if (error instanceof Error) {
@@ -200,6 +209,12 @@ export class OrderController {
                     }
                 );
             }
+            await this.broker.sendMessage(
+                "order",
+                JSON.stringify(brokerMessage),
+                (newOrder[0] as { _id: mongoose.Types.ObjectId })._id.toString()
+            );
+            this.logger.info("Message sent to broker");
 
             httpResponse(req, res, HttpStatus.OK, ResponseMessage.SUCCESS, {
                 paymentUrl: null
@@ -280,7 +295,7 @@ export class OrderController {
         }
 
         // Accessible to: Admin, Manager(for their own restaurant), Customer(for their own order)
-        if (role === "admin") {
+        if ((role as Roles) === Roles.ADMIN) {
             return httpResponse(
                 req as unknown as Request,
                 res,
@@ -291,7 +306,7 @@ export class OrderController {
         }
 
         const myRestaurantOrder = order.tenantId.toString() == tenantId;
-        if (role === "manager" && myRestaurantOrder) {
+        if ((role as Roles) === Roles.MANAGER && myRestaurantOrder) {
             return httpResponse(
                 req as unknown as Request,
                 res,
@@ -301,7 +316,7 @@ export class OrderController {
             );
         }
 
-        if (role === "customer") {
+        if ((role as Roles) === Roles.CUSTOMER) {
             try {
                 // Add debug logs to see what's happening
                 this.logger.info(`Looking for customer with userId: ${userId}`);
@@ -352,6 +367,28 @@ export class OrderController {
         }
         return next(CreateHttpError.ForbiddenError("Not Authorized"));
     };
+
+    // changeStatus = async (req: Request, res: Response, next: NextFunction) => {
+    //     const { role, tenant: tenantId } = (req as unknown as AuthRequest).auth;
+    //     const orderId = req.params.orderId;
+
+    //     if ((role as Roles) === Roles.ADMIN || Roles.MANAGER) {
+    //         const order = await orderModel.findOne({ _id: orderId });
+    //         if (!order) {
+    //             return next(CreateHttpError.NotFoundError("No Order found"));
+    //         }
+    //         const isMyRestaurantOrder =
+    //             order.tenantId.toString() == tenantId?.toString();
+    //         if ((role as Roles) === Roles.MANAGER && !isMyRestaurantOrder) {
+    //             return next(CreateHttpError.ForbiddenError("Not Authorized"));
+    //         }
+
+    //         const updatedOrder = await orderModel.findOneAndUpdate(
+    //             { _id: orderId },
+    //             { orderStatus: req.body.status }
+    //         );
+    //     }
+    // };
 
     private calculateTotal = async (cart: CartItem[]) => {
         const productIds = cart.map((item) => item._id);

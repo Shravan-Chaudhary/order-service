@@ -88,10 +88,17 @@ export class KafkaBroker implements MessageBroker {
      * @param message -- The message to send
      * @throws {Error}
      */
-    async sendMessage(topic: string, message: string) {
+    async sendMessage(topic: string, message: string, key?: string) {
+        const data: { value: string; key?: string } = {
+            key,
+            value: message
+        };
+        if (key) {
+            data.key = key;
+        }
         await this.producer.send({
             topic,
-            messages: [{ value: message }]
+            messages: [data]
         });
     }
 }

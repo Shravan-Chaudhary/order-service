@@ -5,6 +5,8 @@ import { PaymentStatus } from "../../constants";
 import { MessageBroker } from "../../types/broker";
 import { CreateHttpError } from "../../common/http";
 import { Logger } from "winston";
+import { OrderEvents } from "../order/orderTypes";
+import mongoose from "mongoose";
 
 export class PaymentController {
     constructor(
@@ -34,8 +36,17 @@ export class PaymentController {
             );
             try {
                 // Safely stringify the order data
-                const orderPayload = JSON.stringify(updatedOrder);
-                await this.broker.sendMessage("order", orderPayload);
+                const brokerMessage = {
+                    event_type: OrderEvents.ORDER_STATUS_UPDATE,
+                    data: updatedOrder
+                };
+                await this.broker.sendMessage(
+                    "order",
+                    JSON.stringify(brokerMessage),
+                    (
+                        updatedOrder?._id as { _id: mongoose.Types.ObjectId }
+                    )._id.toString()
+                );
             } catch (error) {
                 if (error instanceof Error) {
                     this.logger.error(

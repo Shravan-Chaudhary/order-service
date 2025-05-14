@@ -35,4 +35,12 @@ router.get(
     })
 );
 
+// router.patch(
+//     "/change-status/:orderId",
+//     authenticate,
+//     asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+//         await orderController.changeStatus(req, res, next);
+//     })
+// );
+
 export default router;
